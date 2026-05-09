@@ -1,11 +1,13 @@
 import logging
 import os
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
+from pathlib import Path
 
 # Configuração de diretório de logs
-LOG_DIR = "logs"
-LOG_FILE = os.path.join(LOG_DIR, "backend.log")
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+LOG_DIR = PROJECT_ROOT / "logs"
+LOG_FILE = LOG_DIR / "backend.log"
 
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
@@ -16,14 +18,17 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     force=True,
     handlers=[
-        logging.StreamHandler(), # Envia para o terminal
-        logging.FileHandler(LOG_FILE, encoding='utf-8') # Salva no arquivo
+        logging.StreamHandler(),
+        logging.FileHandler(LOG_FILE, encoding='utf-8')
     ]
 )
 
 logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
+    # Permite campos extras no .env sem quebrar a aplicação
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
     BACKEND_HOST: str = "0.0.0.0"
     BACKEND_PORT: int = 8000
     DATABASE_URL: str = "sqlite:///./app.db"
@@ -35,15 +40,18 @@ class Settings(BaseSettings):
     FRONTEND_PORT: int = 5000
     API_BASE_URL: str = "http://localhost:8000/api/v1"
 
+    # Ollama (Mantido para compatibilidade se necessário)
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "qwen3"
-    OLLAMA_TIMEOUT_SECONDS: int = 120
-    OLLAMA_MAX_TOKENS: int = 2048
-
-    class Config:
-        env_file = ".env"
+    
+    # RAG & OpenAI
+    OPENAI_API_KEY: str = ""
+    DOCUMENTS_DIR: Path = PROJECT_ROOT / "documentos"
+    CHROMA_PERSIST_DIR: Path = PROJECT_ROOT / "backend" / "chroma_rh"
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    LLM_MODEL_RAG: str = "gpt-4o-mini"
 
 settings = Settings()
 
-logger.info(f"Configurações carregadas. Modelo LLM: {settings.OLLAMA_MODEL}")
-logger.info(f"Arquivo de logs configurado em: {LOG_FILE}")
+logger.info(f"Configurações carregadas com sucesso.")
+logger.info(f"Projeto Root: {PROJECT_ROOT}")

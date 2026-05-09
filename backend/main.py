@@ -1,20 +1,51 @@
 import time
 import logging
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+
 from backend.core.config import settings
 from backend.api.v1.api import api_router
 from backend.db.init_db import init_db
+from backend.services.rag_service import rag_pipeline
 
-# Pega o logger já configurado no config.py
 logger = logging.getLogger("backend.main")
 
-app = FastAPI(title="QA LLM API", openapi_url="/api/v1/openapi.json")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Gerenciador de ciclo de vida: Garante ingestão de documentos em cada startup.
+    """
+    logger.info("🚀 [STARTUP] Iniciando Backend FastAPI...")
+    try:
+        # 1. Carregar Banco de Dados
+        init_db()
+        
+        # 2. Conectar com Modelos LLM
+        rag_pipeline.initialize_models()
+        
+        # 3. Carregar e Processar Documentos (Garante dados atualizados)
+        documentos = rag_pipeline.load_documents()
+        if documentos:
+            rag_pipeline.create_vectorstore(documentos)
+            
+        logger.info("✅ [STARTUP] Sistema inicializado e pronto para requisições.")
+    except Exception as e:
+        logger.critical(f"❌ [STARTUP] Falha crítica na inicialização: {e}", exc_info=True)
+    
+    yield
+    
+    logger.info("🛑 [SHUTDOWN] Backend encerrado.")
 
-# Set all CORS enabled origins
+app = FastAPI(
+    title="RAG Backend - Regimentos", 
+    openapi_url="/api/v1/openapi.json",
+    lifespan=lifespan
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict to settings.FRONTEND_HOST
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,34 +54,34 @@ app.add_middleware(
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     """
-    Middleware para logar todas as requisições HTTP recebidas.
+    Middleware para log detalhado de requisições do frontend.
     """
     start_time = time.time()
     client_host = request.client.host if request.client else "unknown"
     
-    response = await call_next(request)
+    logger.info(f"🌐 [REQ] {request.method} {request.url.path} | IP: {client_host}")
     
-    process_time = (time.time() - start_time) * 1000
-    log_msg = f"REQ: {request.method} {request.url.path} | STATUS: {response.status_code} | CLIENT: {client_host} | TIME: {process_time:.2f}ms"
-    
-    if response.status_code >= 400:
-        logger.warning(log_msg)
-    else:
-        logger.info(log_msg)
+    try:
+        response = await call_next(request)
+        duration = time.time() - start_time
         
-    return response
+        log_msg = f"✅ [RES] {response.status_code} | Tempo: {duration:.3f}s"
+        
+        if response.status_code >= 400:
+            logger.warning(log_msg)
+        else:
+            logger.info(log_msg)
+            
+        return response
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"❌ [ERR] Falha na requisição | Tempo: {duration:.3f}s | Erro: {e}", exc_info=True)
+        raise
 
 app.include_router(api_router, prefix="/api/v1")
 
-@app.on_event("startup")
-def on_startup():
-    logger.info("Startup: Iniciando aplicação FastAPI...")
-    init_db()
-    logger.info("Startup: Aplicação pronta para receber requisições.")
-
 if __name__ == "__main__":
     import uvicorn
-    # Adicionado log_level="info" para garantir que o uvicorn mostre nossos logs
     uvicorn.run(
         "backend.main:app", 
         host=settings.BACKEND_HOST, 

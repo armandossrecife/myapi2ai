@@ -5,12 +5,11 @@ from backend.models.base import Base
 from backend.core.config import settings
 
 # Importa todos os modelos para garantir que eles sejam criados no banco de dados
-from backend.models import user, conversation
+from backend.models import user, conversation, query_log
 
 logger = logging.getLogger(__name__)
 
 def init_db() -> None:
-    # Oculta a URL completa do banco se contiver credenciais (embora aqui seja SQLite)
     db_type = settings.DATABASE_URL.split(":")[0]
     logger.info(f"Iniciando conexão com o banco de dados ({db_type})...")
     

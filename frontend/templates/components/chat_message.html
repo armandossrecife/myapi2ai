@@ -1,0 +1,20 @@
+<!-- Client-side Template (to be cloned via JS) -->
+<template id="chat-message-template">
+    <div class="chat-bubble">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="fw-bold message-role"></span>
+            <small class="text-secondary message-time"></small>
+        </div>
+        <div class="message-content markdown-body"></div>
+    </div>
+</template>
+
+<template id="typing-indicator-template">
+    <div class="chat-bubble assistant p-3" id="typing-indicator">
+        <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</template>

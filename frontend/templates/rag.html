@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- Sidebar (Opcional para RAG, pode mostrar arquivos carregados ou histórico) -->
+    <div class="sidebar d-none d-md-flex" id="rag-sidebar">
+        <div class="p-3 border-bottom border-secondary">
+            <h6 class="mb-0 text-uppercase text-secondary fw-bold"><i class="bi bi-files me-2"></i>Documentos Analisados</h6>
+        </div>
+        <div id="file-list" class="p-3 overflow-auto">
+            <div class="text-secondary small">
+                <p>Os seguintes documentos estão na base de conhecimento:</p>
+                <ul class="list-unstyled" id="docs-list">
+                    <li class="mb-2"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Carregando documentos...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-area">
+        <div id="rag-messages" class="chat-messages">
+            <!-- Initial Welcome -->
+            <div class="text-center text-secondary mt-5" id="rag-welcome">
+                <i class="bi bi-file-earmark-text display-1 mb-3"></i>
+                <h3>Consulte os Regimentos</h3>
+                <p>Suas perguntas serão respondidas com base nos documentos oficiais carregados.</p>
+                <p><span class="badge bg-success"><i class="bi bi-shield-check me-1"></i> Respostas Baseadas em Evidências</span></p>
+            </div>
+        </div>
+
+        <!-- Input Box -->
+        <div class="chat-input-area">
+            <div class="chat-input-group">
+                <textarea id="rag-prompt-input" class="chat-input" placeholder="Faça uma pergunta sobre os regimentos..." rows="1"
+                    autocomplete="off"></textarea>
+                <button id="btn-rag-send" class="btn-send">
+                    <i class="bi bi-send-fill" id="rag-send-icon"></i>
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"
+                        id="rag-send-spinner"></span>
+                </button>
+            </div>
+            <div class="text-center mt-2">
+                <small class="text-secondary">O assistente utiliza o modelo <span class="badge bg-secondary">GPT-4o-mini</span> para analisar trechos recuperados.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/rag.js') }}"></script>
+{% endblock %}

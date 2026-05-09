@@ -1,62 +1,82 @@
-# Documentação Técnica - QA AI Platform (Versão RAG)
+# Documentação Técnica - QA AI Platform (Versão RAG & Multi-Chat)
 
-Este documento detalha os requisitos, arquitetura e implementação da plataforma **QA AI Platform**, uma solução de Q&A (Perguntas e Respostas) baseada em inteligência artificial generativa com suporte a RAG local e híbrido.
+Este documento detalha os requisitos, arquitetura e implementação da plataforma **QA AI Platform**, uma solução de Q&A (Perguntas e Respostas) baseada em inteligência artificial generativa com suporte a RAG (Retrieval-Augmented Generation) e chat generalista.
 
 ## 1. Requisitos Funcionais (RF)
 
-*   **RF01 - Autenticação**: Registro e login seguro de usuários via JWT.
-*   **RF02 - Ingestão de Documentos**: O sistema carrega automaticamente arquivos PDF da pasta `documentos/` em cada inicialização.
-*   **RF03 - Consulta RAG**: O usuário pode fazer perguntas que são respondidas com base exclusiva no conteúdo dos documentos ingeridos.
-*   **RF04 - Citação de Fontes**: Cada resposta do RAG retorna o nome do documento, a categoria semântica e o trecho exato utilizado.
-*   **RF05 - Auditoria de Consultas**: Registro persistente de todas as perguntas, respostas e fontes no banco de dados.
-*   **RF06 - Chat Convencional**: Opção de chat generalista (Ollama/LLM direto).
+*   **RF01 - Autenticação**: Registro e login seguro de usuários via JWT, com persistência em SQLite.
+*   **RF02 - Ingestão Automática**: Carregamento e processamento de documentos PDF da pasta `documentos/` em cada inicialização do servidor.
+*   **RF03 - Consulta RAG**: Interface dedicada para perguntas técnicas baseadas exclusivamente no conteúdo dos regimentos carregados.
+*   **RF04 - Chat Generalista**: Integração com Ollama (modelo Qwen3) para assistência geral sem dependência de documentos.
+*   **RF05 - Citação de Fontes**: Exibição detalhada de metadados (nome do arquivo, página, categoria) e trechos originais em cada resposta RAG.
+*   **RF06 - Gestão de Histórico**: Armazenamento de conversas por usuário, permitindo retomar chats anteriores no dashboard.
+*   **RF07 - Personalização de UI**: Alternância entre temas Dark e Light e controle de streaming de respostas.
 
 ## 2. Requisitos Não Funcionais (RNF)
 
-*   **RNF01 - Observabilidade**: Sistema de logs visual com ícones e saída dupla (Console + Arquivo `logs/backend.log`).
-*   **RNF02 - Precisão (Reranking)**: Utilização de técnica de reclassificação via LLM para filtrar os trechos mais relevantes antes da geração da resposta.
-*   **RNF03 - Persistência Vetorial**: Uso de ChromaDB para armazenamento e recuperação eficiente de embeddings.
-*   **RNF04 - Performance de Startup**: Processamento assíncrono e limpeza inteligente de cache durante a inicialização.
+*   **RNF01 - Observabilidade Avançada**: Logs centralizados com ícones descritivos e saída para arquivo (`logs/backend.log`), monitorando latência e eventos críticos.
+*   **RNF02 - Precisão via Reranking**: Processo de reclassificação semântica para filtrar os 4 trechos mais relevantes entre 8 recuperados inicialmente.
+*   **RNF03 - Arquitetura Desacoplada**: Separação clara entre a lógica de interface (Flask) e a lógica de inteligência (FastAPI).
+*   **RNF04 - Banco Vetorial de Alta Performance**: Uso do ChromaDB persistente para busca semântica veloz.
 
-## 3. Arquitetura do Sistema
+## 3. Stack Tecnológica
+
+| Camada | Tecnologia |
+| :--- | :--- |
+| **Frontend** | Flask, Bootstrap 5, Vanilla JS, Marked.js (Markdown) |
+| **Backend API** | FastAPI, Pydantic v2, SQLAlchemy |
+| **Orquestração IA** | LangChain, LangChain-OpenAI, LangChain-Chroma |
+| **Modelos (RAG)** | GPT-4o-mini (Geração), text-embedding-3-small (Vetores) |
+| **Modelos (Chat)** | Ollama (Qwen3) local |
+| **Banco de Dados** | SQLite (Dados), ChromaDB (Vetores) |
+
+## 4. Arquitetura do Sistema
 
 ```mermaid
 graph TD
-    A[Frontend Flask] -->|API REST| B[Backend FastAPI]
-    B -->|SQLAlchemy| C[(SQLite - Logs & Users)]
-    B -->|LangChain| D[ChromaDB - Vetores]
-    B -->|OpenAI API| E[GPT-4o / Embeddings]
-    B -->|Local HTTP| F[Ollama - Chat Direto]
-    G[Pasta documentos/] -->|PyPDFLoader| B
+    subgraph "Frontend (Flask)"
+        UI[Interface Web / Dashboard]
+        JS[Lógica JS - Auth/Chat/RAG]
+    end
+
+    subgraph "Backend (FastAPI)"
+        API[API Endpoints]
+        RAG[Pipeline RAG - LangChain]
+        LLM[Cliente Ollama / OpenAI]
+        DB[(SQLite - data/app.db)]
+        VDB[(ChromaDB - chroma_rh)]
+    end
+
+    UI -->|HTTP/JWT| API
+    API -->|ORM| DB
+    API -->|RAG Query| RAG
+    RAG -->|Similarity Search| VDB
+    RAG -->|Completions| LLM
+    API -->|Local HTTP| LLM
 ```
 
-## 4. Pipeline de RAG (Detalhado)
+## 5. Fluxo de Processamento RAG
 
-O pipeline de RAG foi construído utilizando a biblioteca **LangChain** e segue o fluxo:
+1.  **Ingestão (Startup)**: Limpeza do índice anterior -> Carga de PDFs -> Fragmentação (Chunks) -> Geração de Embeddings -> Persistência no ChromaDB.
+2.  **Consulta**:
+    *   **Retrieval**: Busca os 8 fragmentos mais próximos vetorialmente da pergunta.
+    *   **Reranking**: O LLM avalia a relevância de cada fragmento (escala 0-10).
+    *   **Generation**: Os 4 fragmentos com maior nota são enviados no prompt final para o GPT-4o-mini.
+    *   **Response**: Retorno da resposta textual + Lista de fontes estruturadas.
 
-1.  **Carregamento**: `PyPDFLoader` extrai texto e metadados dos arquivos.
-2.  **Fragmentação**: `RecursiveCharacterTextSplitter` divide o texto em chunks de 800 caracteres com sobreposição de 150.
-3.  **Embeddings**: Geração de vetores via modelo `text-embedding-3-small`.
-4.  **Recuperação (Retrieval)**: Busca vetorial por similaridade (k=8).
-5.  **Reclassificação (Reranking)**: O LLM avalia cada um dos 8 trechos recuperados e atribui uma nota de relevância.
-6.  **Geração (Generation)**: O LLM gera a resposta final utilizando apenas os 4 melhores trechos como contexto.
+## 6. Sistema de Monitoramento e Logs
 
-## 5. Sistema de Monitoramento
+A aplicação utiliza uma convenção de logs visuais para facilitar a auditoria:
 
-O sistema de logs foi desenhado para facilitar a auditoria em tempo real:
+*   🚀 **[STARTUP]**: Ciclo de vida da aplicação e carga de documentos.
+*   🌐 **[REQ] / ✅ [RES]**: Fluxo de tráfego entre Frontend e Backend com tempo de resposta.
+*   🧠 **[LLM]**: Tempo de resposta e modelo utilizado na geração.
+*   📄 **[DOCS]**: Ingestão e listagem de arquivos da base de conhecimento.
+*   🔄 **[RERANK]**: Eficácia da recuperação de trechos.
+*   ❌ **[ERR]**: Rastreamento completo de exceções e falhas de conexão.
 
-*   🚀 **[STARTUP]**: Status da carga de banco, modelos e documentos.
-*   🌐 **[REQ]**: Rastreio de cada chamada do frontend com IP do cliente.
-*   📄 **[DOCS]**: Logs de carregamento de PDFs (página a página).
-*   ✂️ **[CHUNKING]**: Quantidade de fragmentos gerados.
-*   🔄 **[RERANK]**: Notas de relevância atribuídas pelo modelo.
-*   🧠 **[LLM]**: Tempo de geração e uso dos modelos OpenAI.
-*   ✅ **[RES]**: Status final da resposta e tempo total de processamento.
+## 7. Estrutura de Testes
 
-## 6. Qualidade e Testes
-
-A aplicação utiliza `pytest` com uma infraestrutura de **Mocks**, permitindo validar todo o fluxo de RAG e Chat sem realizar chamadas reais à OpenAI ou depender de arquivos físicos, garantindo testes rápidos e isolados.
-
-## 7. Conclusão
-
-A arquitetura modular permite que a plataforma evolua de um simples chat para um sistema de inteligência documental robusto. A combinação de logs detalhados e ingestão automática garante uma experiência de desenvolvimento e manutenção facilitada.
+*   **Testes de Integração**: Localizados em `backend/tests/`, utilizam `pytest` e `pytest-mock`.
+*   **Mocks de IA**: Simulam respostas da OpenAI e Ollama para permitir testes em ambientes sem internet ou sem créditos de API.
+*   **Validação de Endpoints**: Cobre Autenticação, Fluxo de Chat, RAG e CRUD de Usuários.

@@ -31,7 +31,7 @@ class Settings(BaseSettings):
 
     BACKEND_HOST: str = "0.0.0.0"
     BACKEND_PORT: int = 8000
-    DATABASE_URL: str = "sqlite:///./app.db"
+    DATABASE_URL: str = "sqlite:///./data/app.db"
     JWT_SECRET_KEY: str = "altere_esta_chave_em_producao_com_uma_string_aleatoria_segura"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     # Ollama (Mantido para compatibilidade se necessário)
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "qwen3"
+    OLLAMA_TIMEOUT_SECONDS: int = 120
+    OLLAMA_MAX_TOKENS: int = 2048
     
     # RAG & OpenAI
     OPENAI_API_KEY: str = ""

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <div class="sidebar d-none d-md-flex" id="chat-sidebar">
+        <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 text-uppercase text-secondary fw-bold">Histórico</h6>
+            <button class="btn btn-sm btn-outline-light" onclick="startNewChat()" title="Nova Conversa">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </div>
+        <div id="history-list" class="flex-grow-1 overflow-auto">
+            <!-- Populated by JS -->
+            <div class="p-3 text-center text-secondary">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-area">
+        <div id="chat-messages" class="chat-messages">
+            <!-- Initial Welcome -->
+            <div class="text-center text-secondary mt-5" id="chat-welcome">
+                <i class="bi bi-robot display-1 mb-3"></i>
+                <h3>Como posso ajudar hoje?</h3>
+                <p>Modelo atual: <span class="badge bg-primary current-model-info">Carregando...</span></p>
+            </div>
+
+            <!-- Area for message bubbles -->
+        </div>
+
+        <!-- Input Box -->
+        <div class="chat-input-area">
+            <div class="chat-input-group">
+                <textarea id="prompt-input" class="chat-input" placeholder="Envie uma mensagem para a IA..." rows="1"
+                    autocomplete="off"></textarea>
+                <button id="btn-send" class="btn-send">
+                    <i class="bi bi-send-fill" id="send-icon"></i>
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"
+                        id="send-spinner"></span>
+                </button>
+            </div>
+            <div class="text-center mt-2">
+                <small class="text-secondary">O modelo <span class="current-model-info">LLM</span> pode cometer erros de
+                    interpretação. Considere validar as
+                    informações.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

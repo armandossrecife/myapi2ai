@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 pt-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="display-3 mb-4 fw-bold">Bem Vindo à QA AI Platform</h1>
+            <p class="lead mb-5 text-secondary">
+                Interaja com o modelo de linguagem <span class="current-model-info fw-bold">LLM</span>, salve suas conversas e tenha
+                respostas
+                incríveis num clique.
+            </p>
+            <div id="cta-buttons">
+                <a href="/login" class="btn btn-outline-light btn-lg me-3 px-5">Login</a>
+                <a href="/register" class="btn btn-primary btn-lg px-5">Get Started <i
+                        class="bi bi-arrow-right ms-2"></i></a>
+            </div>
+
+            <div class="mt-5 pt-5 row">
+                <div class="col-md-4">
+                    <i class="bi bi-shield-lock display-4 text-accent mb-3"></i>
+                    <h4>Privado & Seguro</h4>
+                    <p class="text-secondary">Sessões isoladas e seguras. Dados armazenados apenas localmente.</p>
+                </div>
+                <div class="col-md-4">
+                    <i class="bi bi-lightning-charge display-4 text-warning mb-3"></i>
+                    <h4>Poderoso & Veloz</h4>
+                    <p class="text-secondary">Apoiado pelo modelo <span class="current-model-info">LLM</span>.</p>
+                </div>
+                <div class="col-md-4">
+                    <i class="bi bi-hdd-network display-4 text-success mb-3"></i>
+                    <h4>Offline First</h4>
+                    <p class="text-secondary">Converse sem se preocupar com envio de dados p/ a internet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Se o usuário estiver logado na página home, mostra atalho p/ dashboard
+    if (localStorage.getItem("jwt_token")) {
+        const cta = document.getElementById("cta-buttons");
+        if (cta) {
+            cta.innerHTML = `
+                <a href="/dashboard" class="btn btn-primary btn-lg px-5">Ir para Dashboard <i class="bi bi-chat ms-2"></i></a>
+            `;
+        }
+    }
+
+    // Carrega o nome do modelo
+    Utils.loadModelName();
+</script>
+{% endblock %}

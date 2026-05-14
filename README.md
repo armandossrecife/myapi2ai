@@ -1,8 +1,12 @@
-# Chat LLM - Protótipo com RAG
+# API de IA Genereativa integrada com Chat LLM e um Protótipo com RAG
 
-A aplicação é dividida em serviços principais: o **Backend** (API FastAPI com RAG) e o **Frontend** (Interface Web em Flask). Ambos compartilham o mesmo ambiente virtual (venv).
+A soluação é dividida em duas aplicações principais: o **Backend** (API FastAPI com RAG) e o **Frontend** (Interface Web em Flask). Ambos compartilham o mesmo ambiente virtual (venv).
 
-Esta versão inclui um sistema de **RAG (Retrieval-Augmented Generation)** para consulta de documentos PDF utilizando LangChain, OpenAI e ChromaDB.
+Esta versão inclui um sistema de chat e um sistema de **RAG (Retrieval-Augmented Generation)** para consulta de documentos PDF utilizando LangChain, OpenAI e ChromaDB.
+
+A solução também faz controle de autenticação de usuários e controla cada sessão de cada usuário logado.
+
+Para mais detalhes consulte o arquivo [projeto.md](projeto.md).
 
 ## Pré-requisitos
 
@@ -113,6 +117,3 @@ export PYTHONPATH=$PYTHONPATH:. && pytest backend/tests
 ## Notas Adicionais
 - **Banco de Dados**: O banco SQLite é inicializado em `data/app.db`.
 - **Reranking**: O RAG utiliza uma etapa de reclassificação inteligente para garantir precisão nas respostas técnicas.
-
-## Mais detalhes 
-Consulte o arquivo [projeto.md](projeto.md).

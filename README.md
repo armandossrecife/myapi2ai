@@ -1,8 +1,8 @@
 # API de IA Genereativa integrada com Chat LLM e um Protótipo com RAG
 
-A soluação é dividida em duas aplicações principais: o **Backend** (API FastAPI com RAG) e o **Frontend** (Interface Web em Flask). Ambos compartilham o mesmo ambiente virtual (venv).
+A soluação é dividida em duas aplicações principais: o **Backend** (API FastAPI) e o **Frontend** (Interface Web em Flask). Ambos compartilham o mesmo ambiente virtual (venv).
 
-Esta versão inclui um sistema de chat e um sistema de **RAG (Retrieval-Augmented Generation)** para consulta de documentos PDF utilizando LangChain, OpenAI e ChromaDB.
+Esta versão inclui um sistema de **Chat** integrado a um Modelo LLM local e um sistema de **RAG (Retrieval-Augmented Generation)** para consulta de documentos PDF utilizando LangChain, OpenAI e ChromaDB.
 
 A solução também faz controle de autenticação de usuários e controla cada sessão de cada usuário logado.
 

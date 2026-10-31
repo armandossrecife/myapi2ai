@@ -222,3 +222,7 @@ __marimo__/
 logs/
 
 data/
+
+.bin
+.vscode
+backend/chroma_rh

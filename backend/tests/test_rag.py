@@ -10,7 +10,7 @@ def mock_rag_pipeline():
     with patch("backend.api.v1.endpoints.rag.rag_pipeline") as mock:
         yield mock
 
-def test_rag_query_success(client: TestClient, db: Session, mock_rag_pipeline):
+def test_rag_query_success(client: TestClient, db: Session, auth_headers: dict, mock_rag_pipeline):
     # Mock RAG response
     mock_source = MagicMock()
     mock_source.page_content = "Este é um trecho de um regimento."
@@ -20,6 +20,7 @@ def test_rag_query_success(client: TestClient, db: Session, mock_rag_pipeline):
     
     response = client.post(
         "/api/v1/rag/query",
+        headers=auth_headers,
         json={"question": "O que diz o regimento?"}
     )
     

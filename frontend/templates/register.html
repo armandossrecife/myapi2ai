@@ -16,10 +16,15 @@
                 <label for="email" class="form-label">E-mail</label>
                 <input type="email" class="form-control" id="email" required>
             </div>
-            <div class="mb-4 text-start">
+            <div class="mb-3 text-start">
                 <label for="password" class="form-label">Senha</label>
-                <input type="password" class="form-control" id="password" minlength="8" required>
+                <input type="password" class="form-control" id="password" minlength="8" autocomplete="new-password" required>
                 <div class="form-text text-secondary">A senha deve ter pelo menos 8 caracteres.</div>
+            </div>
+            <div class="mb-4 text-start">
+                <label for="confirm-password" class="form-label">Confirmar senha</label>
+                <input type="password" class="form-control" id="confirm-password" minlength="8" autocomplete="new-password" required aria-describedby="password-match-feedback">
+                <div id="password-match-feedback" class="invalid-feedback">As senhas não conferem.</div>
             </div>
             <button type="submit" class="btn btn-primary w-100 py-2">
                 <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true" id="reg-spinner"></span>

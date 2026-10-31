@@ -117,10 +117,39 @@ document.addEventListener("DOMContentLoaded", () => {
     // Register Form Handler
     const registerForm = document.getElementById("register-form");
     if (registerForm) {
+        const passwordInput = document.getElementById("password");
+        const confirmPasswordInput = document.getElementById("confirm-password");
+
+        const validatePasswordConfirmation = () => {
+            const hasConfirmation = confirmPasswordInput.value.length > 0;
+            const passwordsMatch = passwordInput.value === confirmPasswordInput.value;
+
+            if (hasConfirmation && !passwordsMatch) {
+                confirmPasswordInput.setCustomValidity("As senhas não conferem.");
+                confirmPasswordInput.classList.add("is-invalid");
+                confirmPasswordInput.classList.remove("is-valid");
+            } else {
+                confirmPasswordInput.setCustomValidity("");
+                confirmPasswordInput.classList.remove("is-invalid");
+                confirmPasswordInput.classList.toggle("is-valid", hasConfirmation && passwordsMatch);
+            }
+
+            return passwordsMatch;
+        };
+
+        passwordInput.addEventListener("input", validatePasswordConfirmation);
+        confirmPasswordInput.addEventListener("input", validatePasswordConfirmation);
+
         registerForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const btn = registerForm.querySelector('button');
             const spinner = document.getElementById("reg-spinner");
+
+            if (!validatePasswordConfirmation() || !registerForm.checkValidity()) {
+                registerForm.classList.add("was-validated");
+                registerForm.querySelector(":invalid")?.focus();
+                return;
+            }
             
             btn.disabled = true;
             spinner.classList.remove("d-none");

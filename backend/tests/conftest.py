@@ -12,6 +12,7 @@ from backend.models.base import Base
 from backend.models.user import User
 from backend.core.config import settings
 from backend.core.security import create_access_token, get_password_hash
+from backend.services.rag_service import rag_pipeline
 
 # Use a separate SQLite database for testing (in memory)
 SQLALCHEMY_DATABASE_URL = "sqlite://"
@@ -44,13 +45,19 @@ def db() -> Generator:
     connection.close()
 
 @pytest.fixture
-def client(db: Session) -> Generator:
+def client(db: Session, monkeypatch) -> Generator:
     def override_get_db():
         try:
             yield db
         finally:
             pass
-            
+
+    # Os testes de endpoints usam banco em memória e não devem iniciar a
+    # ingestão RAG de produção nem fazer chamadas externas à OpenAI.
+    monkeypatch.setattr("backend.main.init_db", lambda: None)
+    monkeypatch.setattr(rag_pipeline, "initialize_models", lambda: None)
+    monkeypatch.setattr(rag_pipeline, "initialize_vectorstore", lambda: None)
+
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
         yield c

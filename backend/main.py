@@ -17,21 +17,20 @@ async def lifespan(app: FastAPI):
     Gerenciador de ciclo de vida: Garante ingestão de documentos em cada startup.
     """
     logger.info("🚀 [STARTUP] Iniciando Backend FastAPI...")
+
+    # O banco relacional é uma dependência obrigatória. Se falhar, o servidor
+    # não deve aceitar requisições em estado parcialmente inicializado.
+    init_db()
+
     try:
-        # 1. Carregar Banco de Dados
-        init_db()
-        
-        # 2. Conectar com Modelos LLM
+        # O RAG é inicializado separadamente para que uma falha de reindexação
+        # não destrua o índice já persistido nem impeça os endpoints não-RAG.
         rag_pipeline.initialize_models()
-        
-        # 3. Carregar e Processar Documentos (Garante dados atualizados)
-        documentos = rag_pipeline.load_documents()
-        if documentos:
-            rag_pipeline.create_vectorstore(documentos)
-            
-        logger.info("✅ [STARTUP] Sistema inicializado e pronto para requisições.")
+        rag_pipeline.initialize_vectorstore()
+        logger.info("✅ [STARTUP] Banco e RAG inicializados. Sistema pronto para requisições.")
     except Exception as e:
-        logger.critical(f"❌ [STARTUP] Falha crítica na inicialização: {e}", exc_info=True)
+        logger.error(f"❌ [STARTUP] RAG indisponível na inicialização: {e}", exc_info=True)
+        logger.warning("⚠️ [STARTUP] API iniciada sem RAG; o índice existente foi preservado.")
     
     yield
     

@@ -7,15 +7,8 @@ from backend.core.config import settings
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        import sys
-        print(f"VERIFY DBG: plain_password='{plain_password}' type={type(plain_password)}", file=sys.stderr)
-        print(f"VERIFY DBG: hashed_password='{hashed_password}' type={type(hashed_password)}", file=sys.stderr)
-        res = bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
-        print(f"VERIFY DBG: result={res}", file=sys.stderr)
-        return res
-    except Exception as e:
-        import sys
-        print(f"VERIFY DBG Exception: {str(e)}", file=sys.stderr)
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    except (TypeError, ValueError):
         return False
 
 def get_password_hash(password: str) -> str:

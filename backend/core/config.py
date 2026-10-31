@@ -8,6 +8,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 LOG_DIR = PROJECT_ROOT / "logs"
 LOG_FILE = LOG_DIR / "backend.log"
+DATA_DIR = PROJECT_ROOT / "data"
 
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
@@ -31,7 +32,7 @@ class Settings(BaseSettings):
 
     BACKEND_HOST: str = "0.0.0.0"
     BACKEND_PORT: int = 8000
-    DATABASE_URL: str = "sqlite:///./data/app.db"
+    DATABASE_URL: str = f"sqlite:///{DATA_DIR / 'app.db'}"
     JWT_SECRET_KEY: str = "altere_esta_chave_em_producao_com_uma_string_aleatoria_segura"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30

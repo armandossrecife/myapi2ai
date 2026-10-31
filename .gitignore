@@ -223,6 +223,11 @@ logs/
 
 data/
 
+# Estado local do índice vetorial RAG
+backend/chroma_rh/
+backend/chroma_rh_versions/
+backend/.chroma_rh.lock
+
 .bin
 .vscode
 backend/chroma_rh
